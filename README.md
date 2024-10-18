@@ -9,7 +9,7 @@ Neutralinojs is a great framework for building cross-platform applications. What
 - Easily customizable by simply editing the appropriate Stylesheets
 - Offers a light and a dark color theme for both platforms
 - Uses custom HTML elements, so it won't clash with existing Stylesheets
-- Lightweight (around 19kb minified)
+- Lightweight (around 20kb minified)
 
 ### Building from source
 
