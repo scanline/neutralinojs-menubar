@@ -1,7 +1,8 @@
 const Accelerator = require("./Accelerator");
+const Menu = require("./Menu");
 
 class MenuItem {
-	click;
+	_click;
 	role;
 	type;
 	label;
@@ -14,11 +15,20 @@ class MenuItem {
 	_registerAccelerator;
 
 	constructor(param) {
-		if (param.submenu != null && !(param.submenu instanceof Menu)) {
+		if (param.submenu != null && !(param.submenu.constructor.name == "Menu")) {
 			this.submenu = Menu.buildFromTemplate(param.submenu);
-
 		} else {
-			this.click = param.click || null;
+			const click = param.click || null;
+			if (param?.type == "checkbox") {
+				this._click = () => {
+					this.checked = !this.checked;
+					if (click) {
+						click();
+					}
+				};
+			} else {
+				this._click = click;
+			}
 		}
 		this.label = param.label;
 		this.type = param.type || "normal";
@@ -28,11 +38,11 @@ class MenuItem {
 		this.id = param.id || null;
 		this.accelerator = param.accelerator || null;
 		this._registerAccelerator = param.registerAccelerator != null ? param.registerAccelerator : true;
-	  
+
 		if ((typeof this.accelerator) == "string") {
 			this.accelerator = Accelerator.processAccelerator(this.accelerator)
-			if (this._enabled && this.click != null && this._registerAccelerator) {
-				Accelerator.addAccelerator(this.accelerator, this.click);
+			if (this._enabled && this._click != null && this._registerAccelerator) {
+				Accelerator.addAccelerator(this.accelerator, this._click);
 			}
 		}
 	}
@@ -45,6 +55,7 @@ class MenuItem {
 		this._enabled = param;
 		this._addAccelerator();
 	}
+
 	get registerAccelerator() {
 		return this._registerAccelerator;
 	}
@@ -54,13 +65,31 @@ class MenuItem {
 		this._addAccelerator();
 	}
 
+	get click() {
+		return this._click;
+	}
+
+	set click(param) {
+		const click = param;
+		if (this.type == "checkbox") {
+			this._click = () => {
+				this.checked = !this.checked;
+				click();
+			};
+		} else {
+			this._click = param;
+		}
+		this._addAccelerator();
+	}
+
 	_addAccelerator() {
-		if ((typeof this.accelerator) == "string" && this.click != null && this._enabled && this._registerAccelerator) {
-			Accelerator.addAccelerator(this.accelerator, this.click);
+		if ((typeof this.accelerator) == "string" && this._click != null && this._enabled && this._registerAccelerator) {
+			Accelerator.addAccelerator(this.accelerator, this._click);
 		} else {
 			Accelerator.removeAccelerator(this.accelerator);
 		}
 	}
+
 }
 
 module.exports = MenuItem;

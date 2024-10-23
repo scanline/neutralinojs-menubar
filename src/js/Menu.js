@@ -1,4 +1,3 @@
-const MenuItem = require("./MenuItem");
 const Accelerator = require("./Accelerator");
 const EventEmitter = require("./EventEmitter");
 
@@ -9,6 +8,7 @@ class Menu extends EventEmitter {
 	static _mouseInterval;
 	static _mouseX;
 	static _mouseY;
+	static _preventPopup = false;
 
 	constructor() {
 		super();
@@ -59,6 +59,11 @@ class Menu extends EventEmitter {
 	}
 
 	popup(options) {
+		if (Menu._preventPopup) {
+			Menu._preventPopup = false;
+			return;
+		}
+		clearTimeout(Menu._mouseInterval);
 		let isApplicationMenu = false;
 		let tempMenu = this;
 		while (tempMenu._parent) {
@@ -96,11 +101,6 @@ class Menu extends EventEmitter {
 				if (menuItem.enabled) {
 					subEl.addEventListener("click", (evt) => {
 						clearTimeout(Menu._mouseInterval);
-
-						if (menuItem.type == "checkbox") {
-							menuItem.checked = !menuItem.checked;
-							subEl.setAttribute("aria-checked", menuItem.checked.toString());
-						}
 						if (menuItem.click) {
 							menuItem.click();
 						}
@@ -125,11 +125,11 @@ class Menu extends EventEmitter {
 									} else
 									if (NL_OS == "Windows") {
 										shiftX = -2;
-										shiftY = 1;
+										shiftY = -3;
 									}
 									menuItem.submenu.popup({
 										x: lastFrame.x + lastFrame.width + shiftX,
-										y: targ.getBoundingClientRect().y - targ.getBoundingClientRect().height + shiftY
+										y: targ.getBoundingClientRect().y + shiftY
 									});
 								}
 							} else {
@@ -159,14 +159,40 @@ class Menu extends EventEmitter {
 
 
 		}
+
+
 		document.querySelector("menu-container").appendChild(frame);
 
-		frame.style.top = y + "px";
-		frame.style.left = x + "px";
 		Menu._openFrames.push({
 			frame: frame,
 			menu: this
 		});
+
+		if (!isApplicationMenu) {
+			let rect = frame.getBoundingClientRect();
+			if (y + rect.height > window.innerHeight) {
+				y = window.innerHeight - rect.height - 10;
+			}
+			if (x + rect.width > document.documentElement.clientWidth) {
+				x = document.documentElement.clientWidth - rect.width - 10;
+				let index = Menu._openFrames.findIndex(el => el.frame == frame) - 1;
+				let currentFrame;
+				let currentX = x;
+				let shiftX = 0;
+				if (NL_OS == "Windows") {
+					shiftX = -2;
+				}
+				while (index >= 0) {
+					currentFrame = Menu._openFrames[index].frame;
+					currentX -= currentFrame.getBoundingClientRect().width + shiftX;
+					currentFrame.style.left = currentX + "px";
+					index--;
+				}
+			}
+		}
+
+		frame.style.top = y + "px";
+		frame.style.left = x + "px";
 	}
 
 	get items() {
@@ -212,12 +238,15 @@ class Menu extends EventEmitter {
 				}
 			});
 			menuItem.addEventListener("mousedown", (evt) => {
+
 				let target = evt.target.closest("sub-menu-element") ? evt.target.closest("sub-menu-element") : evt.currentTarget;
 				switch (target.constructor.name) {
 					case "MenuElement":
-
+						if (evt.which == 3) {
+							Menu._closeMenu(evt);
+							return;
+						}
 						Menu._menuClicked(menu, target);
-
 						break;
 				}
 			});
@@ -233,8 +262,8 @@ class Menu extends EventEmitter {
 		}
 		document.querySelector("menu-container").innerHTML = "";
 
-	  
-	  
+
+
 
 		Menu._applicationMenu = menu;
 	}
@@ -242,18 +271,26 @@ class Menu extends EventEmitter {
 	static _init() {
 		document.addEventListener("mouseup", (evt) => {
 			Menu._mouseX = evt.clientX;
-			Menu._mouseY = evt.clientY - parseInt(getComputedStyle(document.body).marginTop)
+			//Menu._mouseY = evt.clientY - parseInt(getComputedStyle(document.body).marginTop)
+			Menu._mouseY = evt.clientY;
+
 			let target = evt.target.closest("sub-menu-element") ? evt.target.closest("sub-menu-element") : evt.target;
 			switch (target.constructor.name) {
 				case "MenuElement":
 				case "SubMenuElement":
 				case "MenuTitle":
-
+					if (evt.which == 3) {
+						Menu._preventPopup = true;
+					}
 					break;
 				case "MenuBar":
-				default:
-					Menu._closeMenu(evt);
-					break;
+					if (evt.which == 3) {
+
+						Menu._preventPopup = true;
+					}
+					default:
+						Menu._closeMenu(evt);
+						break;
 			}
 		}, true);
 
@@ -296,10 +333,12 @@ class Menu extends EventEmitter {
 
 			menu.items[Array.from(document.querySelectorAll("menu-bar > menu-element")).findIndex(el => el == target)].submenu?.popup({
 				x: target.getBoundingClientRect().x,
-				y: target.getBoundingClientRect().y
+				y: target.getBoundingClientRect().y + target.getBoundingClientRect().height
 			});
 		}
 	}
 }
 
 module.exports = Menu;
+
+const MenuItem = require("./MenuItem");

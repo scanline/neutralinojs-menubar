@@ -124,11 +124,11 @@ and things will look a little different now.
 
 Windows:
 
-<kbd> <img src="images/menuWindows.png" /> </kbd>
+<kbd> <img src="https://raw.githubusercontent.com/scanline/neutralinojs-menubar/refs/heads/main/images/menuWindows.png" /> </kbd>
 
 Linux:
 
-<kbd> <img src="images/menuLinux.png" /> </kbd>
+<kbd> <img src="https://raw.githubusercontent.com/scanline/neutralinojs-menubar/refs/heads/main/images/menuLinux.png" /> </kbd>
 
 Great stuff - but we can do more. If you look closely at the screenshots, you'll notice that **Menu Entry 3** is grayed-out.
 If we scroll-up a bit, we'll realize that we've done this on purpose, as it's **enabled** property is set to false. What if we change our minds later on?
@@ -137,3 +137,42 @@ This MenuItem also has it's **id** property set. So all we have to do is query t
 ```javascript
 myMenu.getMenuItemById("myMenuItem").enabled = true;
 ```
+
+### Advanced Usage
+
+If your familiar with Electron, you surely know there's more to the Menu API than just menu bars. In fact it's also used to create context menus. neutralinojs-menubar offers the same functionality and it's as easy as creating a menu bar!
+
+Construct a context menu:
+
+```javascript
+let contextMenu = Menu.buildFromTemplate([{
+	label: "Context A"
+}, {
+	label: "Context B",
+	submenu: [{
+		label: "A"
+	}, {
+		label: "B",
+		submenu: [{
+			label: "E"
+		}]
+	}, {
+		label: "C"
+	}, {
+		label: "D"
+	}],
+}, {
+	label: "Context C"
+}]);
+```
+
+and call the menu's **popup()** method, to ultimately open the context menu via a mouse right-click:
+
+```javascript
+window.addEventListener("contextmenu", (evt) => {
+	contextMenu.popup();
+	evt.preventDefault();
+});
+```
+
+<kbd> <img src="https://raw.githubusercontent.com/scanline/neutralinojs-menubar/refs/heads/main/images/contextMenu.png" /> </kbd>

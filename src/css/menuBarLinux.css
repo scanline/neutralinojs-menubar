@@ -75,7 +75,7 @@ menu-container * {
 }
 
 menu-bar {
-	position: absolute;
+	position: fixed;
 	top: 0;
 	left: 0;
 	display: flex;
@@ -114,7 +114,7 @@ menu-title[aria-state="underline"] {
 }
 
 menu-frame {
-	position: absolute;
+	position: fixed;
 	padding-bottom: 10px;
 	padding-top: 10px;
 	border-radius: 15px;
