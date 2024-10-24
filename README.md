@@ -31,6 +31,15 @@ After successful installation run:
 
 and the final JavaScript bundle will be at **dist/NeutralinoMenuBar.min.js**
 
+If you're working with JavaScript modules, you have the option to output an ECMAScript module of this library too.
+
+Just run:
+
+`npm run buildESM`
+
+and instead of the UMD, you'll have an ESM bundle at **dist/NeutralinoMenuBar.esm.min.js**
+
+
 ### Getting started
 
 First we need a neutralinojs project to work with of course. For simplicity let's take the almost empty starter template:
@@ -140,7 +149,7 @@ myMenu.getMenuItemById("myMenuItem").enabled = true;
 
 ### Advanced Usage
 
-If your familiar with Electron, you surely know there's more to the Menu API than just menu bars. In fact it's also used to create context menus. neutralinojs-menubar offers the same functionality and it's as easy as creating a menu bar!
+If you're familiar with Electron, you surely know there's more to the Menu API than just menu bars. In fact it's also used to create context menus. neutralinojs-menubar offers the same functionality and it's as easy as creating a menu bar!
 
 Construct a context menu:
 
@@ -176,3 +185,41 @@ window.addEventListener("contextmenu", (evt) => {
 ```
 
 <kbd> <img src="https://raw.githubusercontent.com/scanline/neutralinojs-menubar/refs/heads/main/images/contextMenu.png" /> </kbd>
+
+### ECMAScript Modules
+
+Though the neutralinojs project's website does not offer a template for it (yet), it's client library can also be used inside a module environment. For this use-case, neutralinojs-menubar offers an ECMAScript module version too.
+
+Start by cloning the zero template once more:
+
+`neu create myapp --template neutralinojs/neutralinojs-zero`
+
+`cd myapp`
+
+Now download the ESM version of the client library:
+
+`npx --yes download-cli --out ./www https://unpkg.com/@neutralinojs/lib/dist/neutralino.mjs` 
+
+and neutralinojs-menubar:
+
+`npx --yes download-cli --out ./www https://github.com/scanline/neutralinojs-menubar/releases/download/v1.1.0/NeutralinoMenuBar.esm.min.js`
+
+After succesful download, the **www/index.html** file needs some modifications. Find:
+```html
+<script src="/neutralino.js"></script>
+```
+
+and replace it by:
+```html
+<script src="__neutralino_globals.js"></script>
+```
+Right below add:
+```html
+<script src="/main.js" type="module"></script>
+```
+Again, **www/main.js** does not exist yet, so go ahead and create it.
+The only difference to the prior code is that we now need to import our modules first of course.
+```javascript
+import * as Neutralino from './neutralino.mjs';
+import { Menu, MenuItem } from "/NeutralinoMenuBar.esm.min.js";
+```
